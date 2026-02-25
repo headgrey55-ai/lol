@@ -2,35 +2,76 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 import os
 import uuid
 import asyncio
+import logging
 
 from crewai import Crew, Process
 from agents import financial_analyst
 from task import analyze_financial_document
 
-app = FastAPI(title="Financial Document Analyzer")
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def run_crew(query: str, file_path: str="data/sample.pdf"):
-    """To run the whole crew"""
-    financial_crew = Crew(
-        agents=[financial_analyst],
-        tasks=[analyze_financial_document],
-        process=Process.sequential,
-    )
+app = FastAPI(
+    title="Financial Document Analyzer",
+    description="AI-powered financial document analysis system",
+    version="1.0.0"
+)
+
+def run_crew(query: str, file_path: str = "data/sample.pdf"):
+    """Execute the crew to analyze financial documents
     
-    result = financial_crew.kickoff({'query': query})
-    return result
+    Args:
+        query (str): User's analysis query
+        file_path (str): Path to the uploaded financial document
+        
+    Returns:
+        str: Analysis results from the crew
+    """
+    try:
+        financial_crew = Crew(
+            agents=[financial_analyst],
+            tasks=[analyze_financial_document],
+            process=Process.sequential,
+        )
+        
+        result = financial_crew.kickoff({'query': query})
+        return result
+    except Exception as e:
+        logger.error(f"Error running crew: {str(e)}")
+        raise
 
 @app.get("/")
 async def root():
     """Health check endpoint"""
-    return {"message": "Financial Document Analyzer API is running"}
+    return {
+        "message": "Financial Document Analyzer API is running",
+        "status": "healthy",
+        "version": "1.0.0"
+    }
+
+@app.get("/health")
+async def health_check():
+    """Detailed health check endpoint"""
+    return {
+        "status": "operational",
+        "service": "Financial Document Analyzer"
+    }
 
 @app.post("/analyze")
-async def analyze_financial_document(
+async def analyze_document(
     file: UploadFile = File(...),
     query: str = Form(default="Analyze this financial document for investment insights")
 ):
-    """Analyze financial document and provide comprehensive investment recommendations"""
+    """Analyze financial document and provide comprehensive investment recommendations
+    
+    Args:
+        file (UploadFile): Financial document to analyze (PDF)
+        query (str): User's specific analysis question/request
+        
+    Returns:
+        dict: Analysis results including status, query, and analysis content
+    """
     
     file_id = str(uuid.uuid4())
     file_path = f"data/financial_document_{file_id}.pdf"
@@ -39,35 +80,53 @@ async def analyze_financial_document(
         # Ensure data directory exists
         os.makedirs("data", exist_ok=True)
         
+        # Validate file
+        if not file.filename.endswith('.pdf'):
+            raise HTTPException(
+                status_code=400,
+                detail="Only PDF files are supported"
+            )
+        
         # Save uploaded file
         with open(file_path, "wb") as f:
             content = await file.read()
             f.write(content)
         
-        # Validate query
-        if query=="" or query is None:
+        # Fixed: Better query validation
+        # Check if query is empty or contains only whitespace
+        if not query or query.strip() == "":
             query = "Analyze this financial document for investment insights"
-            
-        # Process the financial document with all analysts
+        
+        # Process the financial document
+        logger.info(f"Processing document: {file.filename} with query: {query}")
         response = run_crew(query=query.strip(), file_path=file_path)
         
         return {
             "status": "success",
-            "query": query,
+            "query": query.strip(),
             "analysis": str(response),
-            "file_processed": file.filename
+            "file_processed": file.filename,
+            "document_id": file_id
         }
         
+    except HTTPException as e:
+        logger.error(f"HTTP Error: {str(e)}")
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing financial document: {str(e)}")
+        logger.error(f"Error processing financial document: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing financial document: {str(e)}"
+        )
     
     finally:
         # Clean up uploaded file
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
-            except:
-                pass  # Ignore cleanup errors
+                logger.info(f"Cleaned up file: {file_path}")
+            except Exception as cleanup_error:
+                logger.warning(f"Could not delete file {file_path}: {str(cleanup_error)}")
 
 if __name__ == "__main__":
     import uvicorn
