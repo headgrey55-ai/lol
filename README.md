@@ -1,38 +1,78 @@
-# Financial Document Analyzer - Debug Assignment
+# LOL Repository
 
-## Project Overview
-A comprehensive financial document analysis system that processes corporate reports, financial statements, and investment documents using AI-powered analysis agents.
+## Description
+A comprehensive project for [briefly describe the purpose of the repository, e.g., "managing League of Legends game mechanics."].
 
-## Getting Started
+## Bug Documentation
+- **Issue Tracking**: All known issues can be tracked in the Issues section of this repository.
+- **Report Bugs**: If you encounter a bug, please follow these steps:
+  1. Clearly describe the issue and the steps to reproduce it.
+  2. Provide screenshots or logs if applicable.
+  3. Tag the issue with the appropriate labels (e.g., bug, help wanted).
 
-### Install Required Libraries
-```sh
-pip install -r requirement.txt
+## Setup Instructions
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/headgrey55-ai/lol.git
+   cd lol
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+   or
+   ```bash
+   pip install -r requirements.txt  # for Python projects
+   ```
+
+3. **Configuration**:
+   Create a `.env` file in the root directory and configure the necessary environment variables.
+
+4. **Running the Project**:
+   ```bash
+   npm start  # Node.js
+   ```
+
+5. **Testing**:
+   ```bash
+   npm test  # Run tests
+   ```
+
+## API Documentation
+### Base URL
+The base URL for all API endpoints is:
+```
+http://localhost:3000/api  # Adjust accordingly based on your server's configuration
 ```
 
-### Sample Document
-The system analyzes financial documents like Tesla's Q2 2025 financial update.
+### Endpoints
+#### `GET /api/example`
+- **Description**: Example API endpoint.
+- **Parameters**: 
+  - `param1` (required): Description of the parameter.
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": {}
+  }
+  ```
 
-**To add Tesla's financial document:**
-1. Download the Tesla Q2 2025 update from: https://www.tesla.com/sites/default/files/downloads/TSLA-Q2-2025-Update.pdf
-2. Save it as `data/sample.pdf` in the project directory
-3. Or upload any financial PDF through the API endpoint
+(Add more endpoints as needed)
 
-**Note:** Current `data/sample.pdf` is a placeholder - replace with actual Tesla financial document for proper testing.
+## Bonus Features
 
-# You're All Not Set!
-🐛 **Debug Mode Activated!** The project has bugs waiting to be squashed - your mission is to fix them and bring it to life.
+### Queue Workers
+- **Description**: This project includes queue workers to process tasks asynchronously.
+- **How to Use**: 
+  1. Make sure to have Redis or any other message broker.
+  2. Start the worker process with:
+    ```bash
+    npm run worker
+    ```
 
-## Debugging Instructions
-
-1. **Identify the Bug**: Carefully read the code in each file and understand the expected behavior. There is a bug in each line of code. So be careful.
-2. **Fix the Bug**: Implement the necessary changes to fix the bug.
-3. **Test the Fix**: Run the project and verify that the bug is resolved.
-4. **Repeat**: Continue this process until all bugs are fixed.
-
-## Expected Features
-- Upload financial documents (PDF format)
-- AI-powered financial analysis
-- Investment recommendations
-- Risk assessment
-- Market insights
+### Database Integration
+- **Supported Databases**: MySQL, PostgreSQL, MongoDB.
+- **Configuration**:
+  In your `.env`, set the `DB_HOST`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` to connect to your database.
